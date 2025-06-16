@@ -9,5 +9,12 @@ package sistemaregistromuseos;
  * @author a-ntt
  */
 public class VisitaGuiada {
+    private String guia;
+    private String idioma;
+    private int maxParticipantes;
     
+    // Constructor y métodos
+    public boolean validarDisponibilidad() {
+        // Lógica de validación
+    }
 }
