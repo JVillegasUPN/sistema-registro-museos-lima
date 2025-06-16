@@ -8,10 +8,6 @@ package sistemaregistromuseos;
  *
  * @author a-ntt
  */
-//Codigo de prueba
-public class Visitante {
-    private String dni;
-    private String nombres;
-    private String procedencia;
-    private String tipoVisita;
+public class ControlAforo {
+    
 }
