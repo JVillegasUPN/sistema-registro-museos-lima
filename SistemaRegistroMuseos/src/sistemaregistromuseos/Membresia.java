@@ -3,17 +3,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package sistemaregistromuseos;
-import sistemaregistromuseos.ControlAforo;
-import sistemaregistromuseos.Membresia;
 
 /**
  *
  * @author a-ntt
  */
-//Codigo de prueba
-public class Visitante {
-    private String dni;
-    private String nombres;
-    private String procedencia;
-    private String tipoVisita;
+public class Membresia {
+    private String codigo;
+    private String tipo; // "Anual", "Mensual", "Estudiante"
+    private double descuento;
 }
