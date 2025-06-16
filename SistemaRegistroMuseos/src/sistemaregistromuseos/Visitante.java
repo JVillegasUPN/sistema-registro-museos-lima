@@ -12,4 +12,5 @@ public class Visitante {
     private String dni;
     private String nombres;
     private String procedencia;
+    private String tipoVisita;
 }
