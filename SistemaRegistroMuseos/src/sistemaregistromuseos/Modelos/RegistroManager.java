@@ -1,9 +1,15 @@
 package sistemaregistromuseos.Modelos;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 import java.util.List;
+import java.util.Optional;
 import javax.swing.JOptionPane;
 
 public class RegistroManager {
@@ -188,5 +194,53 @@ public class RegistroManager {
 
     public List<Visitante> getVisitantesRegistrados() {
         return new ArrayList<>(visitantes);
+    }
+    
+    public boolean existeRegistroDuplicado(String dni) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String hoy = sdf.format(new Date());
+
+        try {
+            List<String> registros = leerRegistrosExistentes();
+            return registros.stream().anyMatch(registro -> 
+                registro.contains("\"dni\":\"" + dni + "\"") &&
+                registro.contains("\"fecha_registro\":\"" + hoy)
+            );
+        } catch (IOException e) {
+            System.err.println("Error verificando duplicados: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    public void anularRegistro(String codigoVisita, String motivo) throws IOException {
+        // 1. Buscar registro
+        List<String> registros = leerRegistrosExistentes();
+        Optional<String> registroOpt = registros.stream()
+            .filter(r -> r.contains("\"codigo_visita\":\"" + codigoVisita + "\""))
+            .findFirst();
+
+        if (!registroOpt.isPresent()) {
+            throw new IllegalArgumentException("Código de visita no encontrado");
+        }
+
+        // 2. Registrar anulación en errores.txt
+        String anulacion = String.format("[%s] ANULADO - Código: %s - Motivo: %s",
+            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
+            codigoVisita,
+            motivo);
+
+        Files.write(Paths.get("src/sistemaregistromuseos/BD_TXT/errores.txt"), 
+            (anulacion + System.lineSeparator()).getBytes(),
+            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
+        // 3. Marcar como anulado en el registro original
+        String registroAnulado = registroOpt.get()
+            .replaceFirst("\\}$", ", \"anulado\": true, \"motivo\": \"" + escapeJson(motivo) + "\"}");
+
+        registros.remove(registroOpt.get());
+        registros.add(registroAnulado);
+
+        // 4. Reescribir archivo
+        escribirTodosLosRegistros(registros);
     }
 }

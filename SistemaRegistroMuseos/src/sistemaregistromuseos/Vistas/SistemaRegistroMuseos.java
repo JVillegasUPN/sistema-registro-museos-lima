@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import sistemaregistromuseos.Modelos.RegistroManager;
 
 /**
  *
@@ -20,6 +21,7 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     private JButton btnRegistro;
     private JButton btnBusqueda;
     private JButton btnReportes;
+    private JButton btnAnulacion;
     
     /**
      * Creates new form SistemaRegistroMuseos
@@ -44,10 +46,11 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     }
     
     private void createComponents() {
-        mainPanel = new JPanel(new GridLayout(3, 1, 10, 10));
+        mainPanel = new JPanel(new GridLayout(4, 1, 10, 10)); // Cambiado a 4 filas
         btnRegistro = new JButton("Registro de Visitantes");
         btnBusqueda = new JButton("Búsqueda y Consultas");
         btnReportes = new JButton("Generar Reportes");
+        btnAnulacion = new JButton("Anulación de Registros"); // Nuevo botón
     }
 
     private void setupLayout() {
@@ -70,11 +73,21 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         btnReportes.addActionListener((ActionEvent e) -> {
             JOptionPane.showMessageDialog(this, "Generar Reportes (por implementar)");
         });
+        
+        btnAnulacion.addActionListener((ActionEvent e) -> {
+            abrirAnulacionRegistros();
+        });
     }
 
     private void abrirRegistroVisitantes() {
         RegistroVisitantesFrame registroFrame = new RegistroVisitantesFrame();
         registroFrame.setVisible(true);
+    }
+    
+    private void abrirAnulacionRegistros() {
+        RegistroManager manager = new RegistroManager();
+        AnulacionFrame anulacionFrame = new AnulacionFrame(manager);
+        anulacionFrame.setVisible(true);
     }
 
     /**

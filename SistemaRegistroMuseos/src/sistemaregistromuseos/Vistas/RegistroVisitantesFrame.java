@@ -9,11 +9,13 @@ import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.print.PrinterException;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import sistemaregistromuseos.Modelos.RegistroManager;
 import sistemaregistromuseos.Modelos.Visitante;
@@ -153,24 +155,48 @@ public class RegistroVisitantesFrame extends javax.swing.JFrame {
     private void registrarVisitante() {
         Visitante visitante = new Visitante();
         try {
-            // Establecer tipo primero para que las validaciones de DNI funcionen
             visitante.setTipo((Visitante.TipoVisitante)cmbTipo.getSelectedItem());
             visitante.setDni(txtDni.getText());
+
+            if (registroManager.existeRegistroDuplicado(visitante.getDni())) {
+                int opcion = JOptionPane.showConfirmDialog(this,
+                    "Este DNI ya fue registrado hoy. ¿Desea continuar?",
+                    "Registro Duplicado",
+                    JOptionPane.YES_NO_OPTION);
+
+                if (opcion != JOptionPane.YES_OPTION) {
+                    return;
+                }
+            }
+
             visitante.setNombreCompleto(txtNombre.getText());
-
             registroManager.registrarVisitante(visitante);
-
-            JOptionPane.showMessageDialog(this,
-                "Registro exitoso!\n" +
-                "Código de visita: " + visitante.getCodigoVisita(),
-                "Registro Completado",
-                JOptionPane.INFORMATION_MESSAGE);
-
+            imprimirComprobante(visitante); // Nueva función
             limpiarFormulario();
+
         } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, 
-                e.getMessage(), 
-                "Error en Registro", 
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    private void imprimirComprobante(Visitante visitante) {
+        try {
+            JTextArea comprobante = new JTextArea();
+            comprobante.setText(
+                "COMPROBANTE DE REGISTRO\n" +
+                "======================\n" +
+                "DNI: " + visitante.getDni() + "\n" +
+                "Nombre: " + visitante.getNombreCompleto() + "\n" +
+                "Tipo: " + visitante.getTipo() + "\n" +
+                "Código: " + visitante.getCodigoVisita() + "\n" +
+                "Fecha: " + visitante.getFechaFormateada() + "\n" +
+                "======================");
+
+            comprobante.print(); // Imprimir directamente
+        } catch (PrinterException e) {
+            JOptionPane.showMessageDialog(this,
+                "Error al imprimir: " + e.getMessage(),
+                "Error",
                 JOptionPane.ERROR_MESSAGE);
         }
     }
