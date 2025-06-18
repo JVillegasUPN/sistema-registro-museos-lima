@@ -19,6 +19,7 @@ public class Visitante {
     private TipoVisitante tipo;
     private String codigoVisita;
     private String fechaRegistro;  // Cambiado de Date a String
+    private String estado;
     
     public enum TipoVisitante {
         NACIONAL("Visitante Nacional"),
@@ -40,6 +41,7 @@ public class Visitante {
     public Visitante() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         this.fechaRegistro = sdf.format(new Date());
+        this.estado = "ACTIVO";
     }
     
     public boolean validarDNI(String dni) {
@@ -162,5 +164,17 @@ public class Visitante {
 
     public String getFechaFormateada() {
         return fechaRegistro;  // Ya está formateada desde el constructor
+    }
+    
+    public void setCodigoVisita(String codigoVisita) {
+        this.codigoVisita = codigoVisita;
+    }
+    
+    public String getEstado() {
+        return estado;
+    }
+    
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

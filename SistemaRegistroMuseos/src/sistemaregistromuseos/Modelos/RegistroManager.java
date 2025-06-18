@@ -2,18 +2,15 @@ package sistemaregistromuseos.Modelos;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import javax.swing.JOptionPane;
 
 public class RegistroManager {
-    private static final String ARCHIVO_REGISTROS = "src/sistemaregistromuseos/BD_TXT/visitantes.txt";
+    private static final String ARCHIVO_REGISTROS = "src/sistemaregistromuseos/BD_TXT/visitantes.json";
+    private static final String ARCHIVO_ANULADOS = "src/sistemaregistromuseos/BD_TXT/anulados.json";
     private List<Visitante> visitantes;
     private int ultimaSecuencia;
 
@@ -35,93 +32,6 @@ public class RegistroManager {
             }
         }
     }
-    
-    private File obtenerArchivoRegistros() {
-        return new File(ARCHIVO_REGISTROS);
-    }
-
-    public void registrarVisitante(Visitante visitante) {
-        visitante.generarCodigoVisita(++ultimaSecuencia);
-        visitantes.add(visitante);
-        guardarVisitanteEnArchivo(visitante);
-    }
-    
-     private void guardarVisitanteEnArchivo(Visitante visitante) {
-        File archivo = obtenerArchivoRegistros();
-        
-        try {
-            // Verificar ruta para depuración
-            System.out.println("Intentando guardar en: " + archivo.getAbsolutePath());
-            
-            if (!archivo.exists()) {
-                archivo.createNewFile();
-            }
-
-            List<String> registrosExistentes = leerRegistrosExistentes();
-            String nuevoRegistro = convertirVisitanteAJson(visitante);
-            registrosExistentes.add(nuevoRegistro);
-            
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo))) {
-                bw.write("[\n");
-                for (int i = 0; i < registrosExistentes.size(); i++) {
-                    bw.write(registrosExistentes.get(i));
-                    if (i < registrosExistentes.size() - 1) {
-                        bw.write(",\n");
-                    }
-                }
-                bw.write("\n]");
-            }
-            
-            JOptionPane.showMessageDialog(null,
-                "Registro guardado exitosamente en:\n" + 
-                archivo.getAbsolutePath(),
-                "Éxito",
-                JOptionPane.INFORMATION_MESSAGE);
-                
-        } catch (IOException e) {
-            JOptionPane.showMessageDialog(null,
-                "Error al guardar en:\n" + 
-                archivo.getAbsolutePath() + 
-                "\nError: " + e.getMessage(),
-                "Error",
-                JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
-        }
-    }
-
-    private List<String> leerRegistrosExistentes() throws IOException {
-        List<String> registros = new ArrayList<>();
-        File archivo = new File(ARCHIVO_REGISTROS);
-        
-        if (!archivo.exists() || archivo.length() == 0) {
-            return registros;
-        }
-
-        try (BufferedReader br = new BufferedReader(new FileReader(ARCHIVO_REGISTROS))) {
-            StringBuilder jsonBuilder = new StringBuilder();
-            String linea;
-            
-            while ((linea = br.readLine()) != null) {
-                jsonBuilder.append(linea);
-            }
-            
-            String jsonCompleto = jsonBuilder.toString();
-            
-            // Extraer registros individuales del array JSON
-            if (jsonCompleto.startsWith("[") && jsonCompleto.endsWith("]")) {
-                String contenido = jsonCompleto.substring(1, jsonCompleto.length() - 1);
-                String[] registrosArray = contenido.split("(?<=}),");
-                
-                for (String registro : registrosArray) {
-                    if (!registro.trim().isEmpty()) {
-                        registros.add(registro.trim());
-                    }
-                }
-            }
-        }
-        
-        return registros;
-    }
 
     private String convertirVisitanteAJson(Visitante visitante) {
         return String.format(
@@ -130,29 +40,16 @@ public class RegistroManager {
             "  \"nombre_completo\": \"%s\",\n" +
             "  \"tipo_visitante\": \"%s\",\n" +
             "  \"codigo_visita\": \"%s\",\n" +
-            "  \"fecha_registro\": \"%s\"\n" +
+            "  \"fecha_registro\": \"%s\",\n" +
+            "  \"estado\": \"%s\"\n" +
             "}",
             escapeJson(visitante.getDni()),
             escapeJson(visitante.getNombreCompleto()),
             visitante.getTipo().name(),
             visitante.getCodigoVisita(),
-            visitante.getFechaFormateada()
+            visitante.getFechaFormateada(),
+            visitante.getEstado()
         );
-    }
-
-    private void escribirTodosLosRegistros(List<String> registros) throws IOException {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(ARCHIVO_REGISTROS))) {
-            bw.write("[\n");
-            
-            for (int i = 0; i < registros.size(); i++) {
-                bw.write(registros.get(i));
-                if (i < registros.size() - 1) {
-                    bw.write(",\n");
-                }
-            }
-            
-            bw.write("\n]");
-        }
     }
 
     private String escapeJson(String input) {
@@ -166,16 +63,79 @@ public class RegistroManager {
                    .replace("\t", "\\t");
     }
 
+    private void guardarJsonEnArchivo(List<String> registros, String archivo) throws IOException {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(archivo))) {
+            bw.write("[\n");
+            for (int i = 0; i < registros.size(); i++) {
+                bw.write(registros.get(i));
+                if (i < registros.size() - 1) {
+                    bw.write(",\n");
+                }
+            }
+            bw.write("\n]");
+        }
+    }
+
+    private List<String> leerRegistrosJson(String archivo) throws IOException {
+        List<String> registros = new ArrayList<>();
+        File file = new File(archivo);
+        
+        if (!file.exists() || file.length() == 0) {
+            return registros;
+        }
+
+        String contenido = new String(Files.readAllBytes(file.toPath()));
+        if (contenido.trim().isEmpty()) {
+            return registros;
+        }
+
+        // Eliminar corchetes exteriores y dividir registros
+        contenido = contenido.trim().substring(1, contenido.length() - 1).trim();
+        String[] registrosArray = contenido.split("(?<=}),\\s*");
+
+        for (String registro : registrosArray) {
+            if (!registro.trim().isEmpty()) {
+                registros.add(registro.trim());
+            }
+        }
+
+        return registros;
+    }
+
+    public void registrarVisitante(Visitante visitante) {
+        visitante.generarCodigoVisita(++ultimaSecuencia);
+        visitantes.add(visitante);
+        guardarVisitanteEnArchivo(visitante);
+    }
+
+    private void guardarVisitanteEnArchivo(Visitante visitante) {
+        try {
+            List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+            registros.add(convertirVisitanteAJson(visitante));
+            guardarJsonEnArchivo(registros, ARCHIVO_REGISTROS);
+            
+            JOptionPane.showMessageDialog(null,
+                "Registro guardado exitosamente",
+                "Éxito",
+                JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null,
+                "Error al guardar: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
     private int cargarUltimaSecuencia() {
         try {
-            List<String> registros = leerRegistrosExistentes();
+            List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
             if (registros.isEmpty()) return 0;
 
             String ultimoRegistro = registros.get(registros.size() - 1);
             int start = ultimoRegistro.indexOf("\"codigo_visita\": \"") + 17;
             int end = ultimoRegistro.indexOf("\"", start);
 
-            if (start >= 17 && end > start) {  // Validación más estricta
+            if (start >= 17 && end > start) {
                 String codigo = ultimoRegistro.substring(start, end);
                 String[] partes = codigo.split("-");
                 if (partes.length >= 2) {
@@ -192,55 +152,137 @@ public class RegistroManager {
         return 0;
     }
 
-    public List<Visitante> getVisitantesRegistrados() {
-        return new ArrayList<>(visitantes);
+    public List<Visitante> getVisitantesRegistrados(boolean soloActivos) {
+        List<Visitante> visitantes = new ArrayList<>();
+        try {
+            List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+            for (String registro : registros) {
+                Visitante visitante = parsearVisitanteDesdeJson(registro);
+                if (visitante != null) {
+                    if (!soloActivos || "ACTIVO".equals(visitante.getEstado())) {
+                        visitantes.add(visitante);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error al leer visitantes: " + e.getMessage());
+        }
+        return visitantes;
     }
-    
+
+    private Visitante parsearVisitanteDesdeJson(String json) {
+        try {
+            Visitante visitante = new Visitante();
+            visitante.setDni(extraerCampoJson(json, "dni"));
+            visitante.setNombreCompleto(extraerCampoJson(json, "nombre_completo"));
+            visitante.setTipo(Visitante.TipoVisitante.valueOf(extraerCampoJson(json, "tipo_visitante")));
+            visitante.setCodigoVisita(extraerCampoJson(json, "codigo_visita"));
+            
+            // Campo opcional estado
+            if (json.contains("\"estado\":")) {
+                visitante.setEstado(extraerCampoJson(json, "estado"));
+            }
+            
+            return visitante;
+        } catch (Exception e) {
+            System.err.println("Error al parsear JSON: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String extraerCampoJson(String json, String campo) {
+        String busqueda = "\"" + campo + "\": \"";
+        int start = json.indexOf(busqueda) + busqueda.length();
+        int end = json.indexOf("\"", start);
+        return json.substring(start, end);
+    }
+
     public boolean existeRegistroDuplicado(String dni) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String hoy = sdf.format(new Date());
 
         try {
-            List<String> registros = leerRegistrosExistentes();
-            return registros.stream().anyMatch(registro -> 
-                registro.contains("\"dni\":\"" + dni + "\"") &&
-                registro.contains("\"fecha_registro\":\"" + hoy)
-            );
+            List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+            for (String registro : registros) {
+                if (registro.contains("\"dni\": \"" + dni + "\"") && 
+                    registro.contains("\"fecha_registro\": \"" + hoy)) {
+                    return true;
+                }
+            }
+            return false;
         } catch (IOException e) {
             System.err.println("Error verificando duplicados: " + e.getMessage());
             return false;
         }
     }
-    
-    public void anularRegistro(String codigoVisita, String motivo) throws IOException {
-        // 1. Buscar registro
-        List<String> registros = leerRegistrosExistentes();
-        Optional<String> registroOpt = registros.stream()
-            .filter(r -> r.contains("\"codigo_visita\":\"" + codigoVisita + "\""))
-            .findFirst();
 
-        if (!registroOpt.isPresent()) {
-            throw new IllegalArgumentException("Código de visita no encontrado");
+    public void anularRegistro(String codigoVisita, String motivo) throws IOException {
+        // 1. Leer registros
+        List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+        String registroOriginal = null;
+        String registroAnulado = null;
+        int indice = -1;
+
+        // 2. Buscar y modificar registro
+        for (int i = 0; i < registros.size(); i++) {
+            if (registros.get(i).contains("\"codigo_visita\": \"" + codigoVisita + "\"")) {
+                registroOriginal = registros.get(i);
+                indice = i;
+
+                // Eliminar el campo estado existente y cualquier coma residual
+                String registroSinEstado = registroOriginal
+                    .replaceAll("\"estado\": \"[^\"]*\"", "")  // Elimina el campo estado
+                    .replaceAll(", ,", ",")  // Elimina comas dobles
+                    .replaceAll(", \\}", "}")  // Elimina comas antes de }
+                    .replaceAll("\\{, ", "{");  // Elimina comas después de {
+
+                // Añadir el nuevo estado y motivo
+                if (registroSinEstado.trim().endsWith("{")) {
+                    // Si no hay otros campos, añadir sin coma
+                    registroAnulado = registroSinEstado.replaceFirst(
+                        "\\}", 
+                        "\"estado\": \"ANULADO\", \"motivo_anulacion\": \"" + escapeJson(motivo) + "\"}"
+                    );
+                } else {
+                    // Si hay otros campos, añadir con coma
+                    registroAnulado = registroSinEstado.replaceFirst(
+                        "\\}", 
+                        ", \"estado\": \"ANULADO\", \"motivo_anulacion\": \"" + escapeJson(motivo) + "\"}"
+                    );
+                }
+                break;
+            }
         }
 
-        // 2. Registrar anulación en errores.txt
-        String anulacion = String.format("[%s] ANULADO - Código: %s - Motivo: %s",
-            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
+        if (registroOriginal == null) {
+            throw new IllegalArgumentException("Código no encontrado: " + codigoVisita);
+        }
+
+        // 3. Registrar anulación
+        registrarAnulacion(codigoVisita, motivo, registroAnulado);
+
+        // 4. Actualizar registro
+        registros.set(indice, registroAnulado);
+        guardarJsonEnArchivo(registros, ARCHIVO_REGISTROS);
+    }
+
+    private void registrarAnulacion(String codigoVisita, String motivo, String registroAnulado) throws IOException {
+        List<String> anulaciones = leerRegistrosJson(ARCHIVO_ANULADOS);
+        
+        String anulacion = String.format(
+            "{\n" +
+            "  \"codigo_visita\": \"%s\",\n" +
+            "  \"fecha_anulacion\": \"%s\",\n" +
+            "  \"motivo\": \"%s\",\n" +
+            "  \"registro_original\": %s\n" +
+            "}",
             codigoVisita,
-            motivo);
+            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
+            escapeJson(motivo),
+            registroAnulado
+        );
 
-        Files.write(Paths.get("src/sistemaregistromuseos/BD_TXT/errores.txt"), 
-            (anulacion + System.lineSeparator()).getBytes(),
-            StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-
-        // 3. Marcar como anulado en el registro original
-        String registroAnulado = registroOpt.get()
-            .replaceFirst("\\}$", ", \"anulado\": true, \"motivo\": \"" + escapeJson(motivo) + "\"}");
-
-        registros.remove(registroOpt.get());
-        registros.add(registroAnulado);
-
-        // 4. Reescribir archivo
-        escribirTodosLosRegistros(registros);
+        anulaciones.add(anulacion);
+        guardarJsonEnArchivo(anulaciones, ARCHIVO_ANULADOS);
     }
 }

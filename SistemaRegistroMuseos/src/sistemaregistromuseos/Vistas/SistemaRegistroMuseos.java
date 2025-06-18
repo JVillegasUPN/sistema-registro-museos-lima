@@ -57,6 +57,7 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         mainPanel.add(btnRegistro);
         mainPanel.add(btnBusqueda);
         mainPanel.add(btnReportes);
+         mainPanel.add(btnAnulacion);
         
         getContentPane().add(mainPanel, BorderLayout.CENTER);
     }

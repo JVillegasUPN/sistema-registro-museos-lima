@@ -6,15 +6,25 @@ package sistemaregistromuseos.Vistas;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import sistemaregistromuseos.Modelos.RegistroManager;
+import sistemaregistromuseos.Modelos.Visitante;
 
 /**
  *
@@ -22,17 +32,18 @@ import sistemaregistromuseos.Modelos.RegistroManager;
  */
 public class AnulacionFrame extends javax.swing.JFrame {
     private JPanel mainPanel;
-    private JTextField txtCodigo;
+    private JComboBox<String> cmbCodigosVisita;
     private JTextArea txtMotivo;
     private JButton btnAnular;
+    private JButton btnActualizar;
     private RegistroManager registroManager;
-
     /**
      * Creates new form AnulacionFrame
      */
     public AnulacionFrame(RegistroManager registroManager) {
         this.registroManager = registroManager;
         setupFrame();
+        cargarCodigosVisita(); // Cargar códigos al iniciar
     }
     
     private void setupFrame() {
@@ -41,7 +52,6 @@ public class AnulacionFrame extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         
-        // Limpiar contenido existente
         getContentPane().removeAll();
         getContentPane().setLayout(new BorderLayout());
         
@@ -56,19 +66,21 @@ public class AnulacionFrame extends javax.swing.JFrame {
     private void createComponents() {
         mainPanel = new JPanel(new GridLayout(0, 1, 10, 10));
         
-        txtCodigo = new JTextField();
+        cmbCodigosVisita = new JComboBox<>();
         txtMotivo = new JTextArea(5, 20);
         txtMotivo.setLineWrap(true);
         txtMotivo.setWrapStyleWord(true);
         
         btnAnular = new JButton("Anular Registro");
+        btnActualizar = new JButton("Actualizar Lista");
     }
 
     private void setupLayout() {
         JPanel formPanel = new JPanel(new GridLayout(0, 1, 5, 5));
         
-        formPanel.add(new JLabel("Código de Visita a Anular:"));
-        formPanel.add(txtCodigo);
+        formPanel.add(new JLabel("Seleccione Código de Visita:"));
+        formPanel.add(cmbCodigosVisita);
+        formPanel.add(btnActualizar);
         formPanel.add(new JLabel("Motivo de Anulación (obligatorio):"));
         formPanel.add(new JScrollPane(txtMotivo));
         
@@ -80,20 +92,46 @@ public class AnulacionFrame extends javax.swing.JFrame {
 
     private void setupEventHandlers() {
         btnAnular.addActionListener(e -> anularRegistro());
+        btnActualizar.addActionListener(e -> cargarCodigosVisita());
+    }
+    
+    private void cargarCodigosVisita() {
+        cmbCodigosVisita.removeAllItems();
+        try {
+            // Cambiar esta línea para filtrar solo activos
+            List<Visitante> visitantes = registroManager.getVisitantesRegistrados(true);
+
+            if (visitantes.isEmpty()) {
+                cmbCodigosVisita.addItem("No hay registros activos disponibles");
+                return;
+            }
+
+            for (Visitante v : visitantes) {
+                if (v.getCodigoVisita() != null && !v.getCodigoVisita().isEmpty()) {
+                    cmbCodigosVisita.addItem(v.getCodigoVisita());
+                }
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
+                "Error al cargar códigos: " + e.getMessage(),
+                "Error",
+                JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void anularRegistro() {
-        String codigo = txtCodigo.getText().trim();
+        String codigo = (String) cmbCodigosVisita.getSelectedItem();
         String motivo = txtMotivo.getText().trim();
-        
-        if (codigo.isEmpty()) {
+
+        // Validaciones
+        if (codigo == null || codigo.equals("No hay registros disponibles")) {
             JOptionPane.showMessageDialog(this,
-                "Debe ingresar un código de visita",
+                "Por favor seleccione un código de visita válido",
                 "Error",
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         if (motivo.isEmpty()) {
             JOptionPane.showMessageDialog(this,
                 "Debe ingresar un motivo de anulación",
@@ -101,34 +139,32 @@ public class AnulacionFrame extends javax.swing.JFrame {
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
+
         try {
             registroManager.anularRegistro(codigo, motivo);
-            
+
             JOptionPane.showMessageDialog(this,
-                "Registro anulado exitosamente",
+                "Registro anulado exitosamente:\nCódigo: " + codigo,
                 "Éxito",
                 JOptionPane.INFORMATION_MESSAGE);
-            
+
             limpiarFormulario();
+            cargarCodigosVisita(); // Actualizar lista
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(this,
-                e.getMessage(),
-                "Error",
+                "Error: " + e.getMessage() + "\nCódigo: " + codigo,
+                "Error de Anulación",
                 JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
+        } catch (IOException e) {
             JOptionPane.showMessageDialog(this,
-                "Error al anular registro: " + e.getMessage(),
-                "Error",
+                "Error al guardar la anulación: " + e.getMessage(),
+                "Error de Sistema",
                 JOptionPane.ERROR_MESSAGE);
-            e.printStackTrace();
         }
     }
 
     private void limpiarFormulario() {
-        txtCodigo.setText("");
         txtMotivo.setText("");
-        txtCodigo.requestFocus();
     }
 
     /**
