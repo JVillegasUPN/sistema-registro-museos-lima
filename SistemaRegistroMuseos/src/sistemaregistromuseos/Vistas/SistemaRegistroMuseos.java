@@ -24,6 +24,8 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     private JButton btnAnulacion;
     private JButton btnEventos;
     private JButton btnSeguridad;
+    private JButton btnInterfazUsuario; 
+    private JButton btnModoOffline; 
     
     /**
      * Creates new form SistemaRegistroMuseos
@@ -51,6 +53,8 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         mainPanel = new JPanel(new GridLayout(4, 1, 10, 10)); // Cambiado a 4 filas
         mainPanel.add(btnReportes);
         mainPanel.add(btnSeguridad);
+        mainPanel.add(btnInterfazUsuario);
+        mainPanel.add(btnModoOffline);
         btnRegistro = new JButton("Registro de Visitantes");
         btnBusqueda = new JButton("Búsqueda y Consultas");
         btnReportes = new JButton("Generar Reportes");
@@ -58,6 +62,8 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         btnEventos  = new JButton("Gestión de Eventos");
         btnReportes = new JButton("Reportes y Estadísticas");
         btnSeguridad = new JButton("Seguridad y Backup");
+        btnInterfazUsuario = new JButton("Interfaz de Usuario");
+        btnModoOffline = new JButton("Modo Offline");
     }
 
     private void setupLayout() {
@@ -95,6 +101,14 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         btnEventos.addActionListener((ActionEvent e) -> {
             abrirEventosFrame();
         });
+        
+        btnInterfazUsuario.addActionListener((ActionEvent e) -> {
+            abrirInterfazUsuarioFrame();
+        });
+
+        btnModoOffline.addActionListener((ActionEvent e) -> {
+            abrirModoOfflineFrame();
+        });
     }
     
     private void abrirBusquedaFrame() {
@@ -126,6 +140,16 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     private void abrirSeguridadFrame() {
         SeguridadFrame seguridadFrame = new SeguridadFrame();
         seguridadFrame.setVisible(true);
+    }
+    
+    private void abrirInterfazUsuarioFrame() {
+        InterfazUsuarioFrame interfazFrame = new InterfazUsuarioFrame();
+        interfazFrame.setVisible(true);
+    }
+
+    private void abrirModoOfflineFrame() {
+        ModoOfflineFrame offlineFrame = new ModoOfflineFrame();
+        offlineFrame.setVisible(true);
     }
 
     /**
