@@ -370,4 +370,37 @@ public class RegistroManager {
         // Escribir archivo
         Files.write(path, contenido.getBytes(), StandardOpenOption.CREATE);
     }
+    
+    public String generarReporteDiario() throws IOException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String fechaHoy = sdf.format(new Date());
+        String nombreArchivo = "reporte_diario_" + fechaHoy + ".txt";
+        Path path = Paths.get("src/sistemaregistromuseos/BD_TXT/" + nombreArchivo);
+
+        String contenido = generarEstadisticas();
+        Files.write(path, contenido.getBytes(), StandardOpenOption.CREATE);
+
+        return "Reporte diario generado: " + nombreArchivo + "\n\n" + contenido;
+    }
+
+    public List<String> contarVisitantesPorTipo() throws IOException {
+        List<String> resultados = new ArrayList<>();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String hoy = sdf.format(new Date());
+
+        List<Visitante> visitasHoy = buscarPorFecha(hoy);
+
+        for (Visitante.TipoVisitante tipo : Visitante.TipoVisitante.values()) {
+            long count = visitasHoy.stream().filter(v -> v.getTipo() == tipo).count();
+            resultados.add(tipo.toString() + ": " + count);
+        }
+
+        return resultados;
+    }
+
+    public int contarVisitantesHoy() throws IOException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String hoy = sdf.format(new Date());
+        return buscarPorFecha(hoy).size();
+    }
 }

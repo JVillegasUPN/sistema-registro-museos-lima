@@ -23,6 +23,7 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     private JButton btnReportes;
     private JButton btnAnulacion;
     private JButton btnEventos;
+    private JButton btnSeguridad;
     
     /**
      * Creates new form SistemaRegistroMuseos
@@ -48,11 +49,15 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     
     private void createComponents() {
         mainPanel = new JPanel(new GridLayout(4, 1, 10, 10)); // Cambiado a 4 filas
+        mainPanel.add(btnReportes);
+        mainPanel.add(btnSeguridad);
         btnRegistro = new JButton("Registro de Visitantes");
         btnBusqueda = new JButton("Búsqueda y Consultas");
         btnReportes = new JButton("Generar Reportes");
         btnAnulacion = new JButton("Anulación de Registros"); // Nuevo botón
         btnEventos  = new JButton("Gestión de Eventos");
+        btnReportes = new JButton("Reportes y Estadísticas");
+        btnSeguridad = new JButton("Seguridad y Backup");
     }
 
     private void setupLayout() {
@@ -75,7 +80,11 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         });
 
         btnReportes.addActionListener((ActionEvent e) -> {
-            JOptionPane.showMessageDialog(this, "Generar Reportes (por implementar)");
+            abrirReportesFrame();
+        });
+
+        btnSeguridad.addActionListener((ActionEvent e) -> {
+            abrirSeguridadFrame();
         });
 
         btnAnulacion.addActionListener((ActionEvent e) -> {
@@ -107,6 +116,16 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         RegistroManager manager = new RegistroManager();
         AnulacionFrame anulacionFrame = new AnulacionFrame(manager);
         anulacionFrame.setVisible(true);
+    }
+    
+    private void abrirReportesFrame() {
+        ReportesFrame reportesFrame = new ReportesFrame();
+        reportesFrame.setVisible(true);
+    }
+
+    private void abrirSeguridadFrame() {
+        SeguridadFrame seguridadFrame = new SeguridadFrame();
+        seguridadFrame.setVisible(true);
     }
 
     /**

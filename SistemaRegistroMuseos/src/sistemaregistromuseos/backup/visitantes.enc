@@ -1,0 +1,24 @@
+[
+{
+  "dni": "22222222",
+  "nombre_completo": "bgjdfgdfgfd",
+  "tipo_visitante": "NACIONAL",
+  "codigo_visita": "VIS-001-2025",
+  "fecha_registro": "2025-06-18 00:42:17"
+,  "estado": "ANULADO", "motivo_anulacion": "sdfsdf"},
+{
+  "dni": "11111111",
+  "nombre_completo": "ghjkghjhg",
+  "tipo_visitante": "NACIONAL",
+  "codigo_visita": "VIS-002-2025",
+  "fecha_registro": "2025-06-18 00:42:50"
+, "estado": "ANULADO", "motivo_anulacion": "vbnvbn"},
+{
+  "dni": "44444444",
+  "nombre_completo": "fdsfsdfgsdf",
+  "tipo_visitante": "EXTRANJERO",
+  "codigo_visita": "EXT-TYTQISNT-2025",
+  "fecha_registro": "2025-06-18 00:45:53",
+  "estado": "ACTIVO"
+}
+]
