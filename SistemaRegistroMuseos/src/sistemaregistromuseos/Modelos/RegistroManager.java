@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.swing.JOptionPane;
@@ -284,5 +285,89 @@ public class RegistroManager {
 
         anulaciones.add(anulacion);
         guardarJsonEnArchivo(anulaciones, ARCHIVO_ANULADOS);
+    }
+    
+    public List<Visitante> buscarPorDni(String dni) throws IOException {
+        List<Visitante> resultados = new ArrayList<>();
+        List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+
+        for (String registro : registros) {
+            if (registro.contains("\"dni\": \"" + dni + "\"")) {
+                Visitante visitante = parsearVisitanteDesdeJson(registro);
+                if (visitante != null) {
+                    resultados.add(visitante);
+                }
+            }
+        }
+
+        return resultados;
+    }
+
+    public List<Visitante> buscarPorFecha(String fecha) throws IOException {
+        List<Visitante> resultados = new ArrayList<>();
+        List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+
+        for (String registro : registros) {
+            if (registro.contains("\"fecha_registro\": \"" + fecha)) {
+                Visitante visitante = parsearVisitanteDesdeJson(registro);
+                if (visitante != null) {
+                    resultados.add(visitante);
+                }
+            }
+        }
+
+        // Ordenar por hora de registro
+        resultados.sort((v1, v2) -> v1.getFechaRegistro().compareTo(v2.getFechaRegistro()));
+
+        return resultados;
+    }
+
+    public List<Visitante> filtrarPorTipo(Visitante.TipoVisitante tipo) throws IOException {
+        List<Visitante> resultados = new ArrayList<>();
+        List<String> registros = leerRegistrosJson(ARCHIVO_REGISTROS);
+
+        for (String registro : registros) {
+            if (registro.contains("\"tipo_visitante\": \"" + tipo.name() + "\"")) {
+                Visitante visitante = parsearVisitanteDesdeJson(registro);
+                if (visitante != null) {
+                    resultados.add(visitante);
+                }
+            }
+        }
+
+        return resultados;
+    }
+
+    public String generarEstadisticas() throws IOException {
+        StringBuilder sb = new StringBuilder();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String hoy = sdf.format(new Date());
+
+        // Estadísticas diarias
+        List<Visitante> visitasHoy = buscarPorFecha(hoy);
+        sb.append("ESTADÍSTICAS DEL DÍA (").append(hoy).append(")\n");
+        sb.append("================================\n");
+        sb.append("Total visitantes hoy: ").append(visitasHoy.size()).append("\n");
+
+        // Conteo por tipo
+        sb.append("\nDistribución por tipo:\n");
+        for (Visitante.TipoVisitante tipo : Visitante.TipoVisitante.values()) {
+            long count = visitasHoy.stream().filter(v -> v.getTipo() == tipo).count();
+            sb.append("- ").append(tipo).append(": ").append(count).append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    public void exportarResultados(String contenido) throws IOException {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
+        String nombreArchivo = "reporte_busqueda_" + sdf.format(new Date()) + ".txt";
+        Path path = Paths.get("src/sistemaregistromuseos/BD_TXT/" + nombreArchivo);
+
+        // Crear directorio si no existe
+        Files.createDirectories(path.getParent());
+
+        // Escribir archivo
+        Files.write(path, contenido.getBytes(), StandardOpenOption.CREATE);
     }
 }

@@ -22,6 +22,7 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
     private JButton btnBusqueda;
     private JButton btnReportes;
     private JButton btnAnulacion;
+    private JButton btnEventos;
     
     /**
      * Creates new form SistemaRegistroMuseos
@@ -51,13 +52,15 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         btnBusqueda = new JButton("Búsqueda y Consultas");
         btnReportes = new JButton("Generar Reportes");
         btnAnulacion = new JButton("Anulación de Registros"); // Nuevo botón
+        btnEventos  = new JButton("Gestión de Eventos");
     }
 
     private void setupLayout() {
         mainPanel.add(btnRegistro);
         mainPanel.add(btnBusqueda);
         mainPanel.add(btnReportes);
-         mainPanel.add(btnAnulacion);
+        mainPanel.add(btnAnulacion);
+        mainPanel.add(btnEventos);
         
         getContentPane().add(mainPanel, BorderLayout.CENTER);
     }
@@ -66,18 +69,33 @@ public class SistemaRegistroMuseos extends javax.swing.JFrame {
         btnRegistro.addActionListener((ActionEvent e) -> {
             abrirRegistroVisitantes();
         });
-        
+
         btnBusqueda.addActionListener((ActionEvent e) -> {
-            JOptionPane.showMessageDialog(this, "Búsqueda y Consultas (por implementar)");
+            abrirBusquedaFrame();
         });
-        
+
         btnReportes.addActionListener((ActionEvent e) -> {
             JOptionPane.showMessageDialog(this, "Generar Reportes (por implementar)");
         });
-        
+
         btnAnulacion.addActionListener((ActionEvent e) -> {
             abrirAnulacionRegistros();
         });
+
+        // Nuevo botón para eventos
+        btnEventos.addActionListener((ActionEvent e) -> {
+            abrirEventosFrame();
+        });
+    }
+    
+    private void abrirBusquedaFrame() {
+        BusquedaFrame busquedaFrame = new BusquedaFrame();
+        busquedaFrame.setVisible(true);
+    }
+
+    private void abrirEventosFrame() {
+        EventosFrame eventosFrame = new EventosFrame();
+        eventosFrame.setVisible(true);
     }
 
     private void abrirRegistroVisitantes() {

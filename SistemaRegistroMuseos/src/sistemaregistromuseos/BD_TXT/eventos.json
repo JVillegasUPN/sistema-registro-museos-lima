@@ -1,0 +1,11 @@
+[
+{
+  "codigo": "EVT-20250620-1750309510347",
+  "nombre": "hola fest",
+  "fecha": "2025-06-20 00:00:00",
+  "cupo_maximo": 20,
+  "cupos_disponibles": 19,
+  "activo": true
+},
+{  "codigo": "EVT-20250620-1750309531979",  "nombre": "materia",  "fecha": "2025-06-20 00:00:00",  "cupo_maximo": 30,  "cupos_disponibles": 30,  "activo": true}
+]

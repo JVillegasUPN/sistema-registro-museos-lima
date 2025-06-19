@@ -1,0 +1,23 @@
+Registros encontrados para fecha 2025-06-18 (3 visitas):
+
+DNI: 22222222
+Nombre: bgjdfgdfgfd
+Tipo: Visitante Nacional
+Código Visita: VIS-001-2025
+Fecha Registro: 2025-06-19 00:08:20
+Estado: ANULADO
+
+DNI: 11111111
+Nombre: ghjkghjhg
+Tipo: Visitante Nacional
+Código Visita: VIS-002-2025
+Fecha Registro: 2025-06-19 00:08:20
+Estado: ANULADO
+
+DNI: 44444444
+Nombre: fdsfsdfgsdf
+Tipo: Visitante Extranjero
+Código Visita: EXT-TYTQISNT-2025
+Fecha Registro: 2025-06-19 00:08:20
+Estado: ACTIVO
+
